@@ -70,7 +70,7 @@ Commands
 
 A few basic top level commands
 
-```bash
+```nocolor
 cue register [path/to/.cue]  //register a project (take you through Q/A to setup project)
 cue unregister project-name  //unregister a project (make cue unaware of it)
 cue workon project-name      //fire up 'workon' task to switch to said project
