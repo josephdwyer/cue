@@ -71,7 +71,7 @@ Commands
 A few basic top level commands
 
 ```nocolor
-cue register [path/to/.cue]  //register a project (take you through Q/A to setup project)
+cue register {path/to/existing/.cue (optional, uses pwd)}  //register a project (take you through Q/A to setup project)
 cue unregister project-name  //unregister a project (make cue unaware of it)
 cue workon project-name      //fire up 'workon' task to switch to said project
 cue task {task name}         //fire off task (either global and/or overridden local task in a project)
