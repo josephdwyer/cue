@@ -4,8 +4,7 @@ Conductor - Project/Task automation for local development
 Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable
 
 
-Example Global Tasks File
-==
+h2. Example Global Tasks File
 
 ```json
 {
