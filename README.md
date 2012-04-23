@@ -1,10 +1,10 @@
-Conductor - A tool to help manage projects and tasks for local development
+Conductor - Manage projects and tasks for local development
 =
 
 Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable
 
 
-Example Global Settings File
+Example Global Tasks File
 ==
 
 ```json
@@ -20,7 +20,7 @@ Example Global Settings File
 		},
 		"hg": {
 			"update": ["hg pull"]
-		}
+		},
 		"svn": {
 			"update": ["svn update"]
 		}
@@ -51,8 +51,8 @@ Example Project specific project file (.cue?)
 	"scm": "git",
 	"editor": "vim",
 	"workon": [":scm:update", ":type:start", ":editor:open" ],
-	"tasks": [  // cue taskname
-		{"specific", [ "more", "commands", "to", "run" ]}
+	"tasks": [
+		{"specific": [ "more", "commands", "to", "run" ]}
 	]
 }
 ```
