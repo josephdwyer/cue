@@ -1,4 +1,4 @@
-Conductor - Manage projects and tasks for local development
+Conductor - Project/Task automation for local development
 =
 
 Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable
