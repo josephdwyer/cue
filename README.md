@@ -1,10 +1,9 @@
-Conductor - Project/Task automation for local development
-=
+##Conductor - Project/Task automation for local development
 
 Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable
 
 
-h2. Example Global Tasks File
+###Example Global Tasks File
 
 ```json
 {
@@ -37,8 +36,7 @@ h2. Example Global Tasks File
 ```
 
 
-Example Project specific project file (.cue?)
-==
+###Example Project specific project file (.cue?)
 
 ```json
 {
@@ -56,16 +54,16 @@ Example Project specific project file (.cue?)
 }
 ```
 
-Tasks
-==
+###Tasks
+
 
 Tasks can either be an array of sequential shell commands or prefixed with ```:``` can be another task global and/or local to the project.
 
 You can also refer to the current "project" object with ```{this.property}``` within your shell commands.
 
 
-Commands
-==
+###Commands
+
 
 A few basic top level commands
 
