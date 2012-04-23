@@ -76,3 +76,9 @@ cue unregister project-name  //unregister a project (make cue unaware of it)
 cue workon project-name      //fire up 'workon' task to switch to said project
 cue task {task name}         //fire off task (either global and/or overridden local task in a project)
 ```
+
+You could also potentially run tasks on related (or dependant) projects without having to switch projects
+
+```nocolor
+cue task -p project-name {task name}
+```
