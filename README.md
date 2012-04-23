@@ -62,7 +62,7 @@ Tasks
 
 Tasks can either be an array of sequential shell commands or prefixed with ```:``` can be another task global and/or local to the project.
 
-You can also refer to the current "project" object with {this.property} within your shell commands.
+You can also refer to the current "project" object with ```{this.property}``` within your shell commands.
 
 
 Commands
@@ -73,6 +73,6 @@ A few basic top level commands
 ```bash
 cue register [path/to/.cue]  //register a project (take you through Q/A to setup project)
 cue unregister project-name  //unregister a project (make cue unaware of it)
-cue workon project-name      //fire up `workon` task to switch to said project
+cue workon project-name      //fire up 'workon' task to switch to said project
 cue task {task name}         //fire off task (either global and/or overridden local task in a project)
 ```
