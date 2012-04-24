@@ -127,7 +127,7 @@ A task can be one of 2 things
  - a simple string to either run in the shell or call another task (prefixed with `:`)
  - an object outlined below...
 
-You can refer to the current project properties in your shell strings with `##project.property##`
+You can refer to the current project properties in your shell strings with `##property##`
 
 
     Task
