@@ -116,8 +116,7 @@ A non generic example using the non-generic example above might look like this.
         "scm":"git",
         "type":"django",
         "tasks": {                               <-- required
-            "workon": [":update",":open"],       <-- required
-            
+            "workon": [":update",":open"]        <-- required
         }
     }
 
