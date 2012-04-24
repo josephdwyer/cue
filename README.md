@@ -2,122 +2,7 @@
 
 Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable across multiple mixes of scm, platforms, and environments.
 
-
-###Example Global Tasks File
-
-```json
-{
-  "editor": {
-    "vim": {
-      "open": ["vim ."]
-    }
-  },
-  "scm": {
-    "git": {
-      "update": ["git pull"]
-    },
-    "hg": {
-      "update": ["hg pull"]
-    },
-    "svn": {
-      "update": ["svn update"]
-    }
-  },
-  "type": {
-    "php": {
-      "start": ["rm ~/.phphome", "ln -s {this.public} ~/.phphome", "/Applications/MAMP/bin/apache2/bin/apachectl restart"],
-      "build": ["run through php -l"]
-    },
-    "rails": {
-      "start": ["rails server"]
-    }
-  }
-}
-```
-
-Possibly use YAML?
-
-```yaml
-editor:
-    vim:
-        open: vim .
-scm:
-    git:
-        update: git pull
-    hg:
-        update: hg pull
-    svn:
-        update: svn update
-type:
-    php:
-        start:|
-              rm ~/.phphome
-              ln -s {this.public} ~/.phphome
-              /Applications/MAMP/bin/apache2/bin/apachectl
-              
-        build: run through php -l
-    rails:
-        start: rails server
-```
-
-With error recovery?
-
-```yaml
-editor:
-    vim:
-        open: vim .
-scm:
-    git:
-        update: git pull
-    hg:
-        update: hg pull
-    svn:
-        update: svn update
-type:
-    php:
-        start:
-            - exec: rm ~/.phphome
-              onError: :stop
-
-            - exec: ln -s {this.public} ~/.phphome
-              onError: :stop
-
-            - exec: /Applications/MAMP/bin/apache2/bin/apachectl
-              onError: :continue
-
-        build: run through php -l
-    rails:
-        start: rails server
-```
-
-###Example Project specific project file (.cue?)
-
-```json
-{
-  "root_path": "/path/to/project_root",
-  "public_path": "/path/to/project_root/public_html",
-  "fullname": "Project Name",
-  "slug": "project-name",
-  "type": "php",
-  "scm": "git",
-  "editor": "vim",
-  "workon": [":scm:update", ":type:start", ":editor:open" ],
-  "tasks": [
-    {"specific": [ "more", "commands", "to", "run" ]}
-  ]
-}
-```
-
-###Tasks
-
-
-Tasks can either be an array of sequential shell commands or prefixed with ```:``` can be another task global and/or local to the project.
-
-You can also refer to the current "project" object with ```{this.property}``` within your shell commands.
-
-
-###Commands
-
+### Usage
 
 A few basic top level commands
 
@@ -133,3 +18,143 @@ You could also potentially run tasks on related (or dependant) projects without 
 ```nocolor
 cue task -p project-name {task name}
 ```
+
+### Setup and Task Hierarchy
+
+#### Global (~/.conductor)
+
+Example format of the `~/.conductor` file at the most basic level
+
+    {
+        "group": {
+            "type": {
+                "action1": ["shell", "commands", "to", "run"],
+                "action2": ["shell", "commands", "to", "run"]
+            },
+            "type2": {
+                "action1": ["shell", "commands", "to", "run"],
+                "action2": ["shell", "commands", "to", "run"]
+            }
+        }
+        "group2": {
+            "type": {
+                "action1": ["shell", "commands", "to", "run"],
+                "action2": ["shell", "commands", "to", "run"]
+            },
+            "type2": {
+                "action1": ["shell", "commands", "to", "run"],
+                "action2": ["shell", "commands", "to", "run"]
+            }
+        }
+    }
+
+These settings define and namespace tasks that can be run within projects and are completely open ended...
+
+A non generic example
+
+    {
+        "editor": {
+            "vim": {
+                "open": "vim ."
+            },
+            "sublime": {
+                "open": "subl ."
+            }
+        },
+        "scm": {
+            "git": {
+                "update": ["git pull"]
+            },
+            "hg": {
+                "update": ["hg pull"]
+            }
+            "svn": {
+                "update": ["svn update"]
+            }
+        },
+        "type": {
+            "django": {
+                "start": ["python manage.py runserver"]
+            }
+            "rails": {
+                "start": ["rails server"]
+            }
+        }
+    }
+
+
+#### Per Project Settings
+
+Per project we will define which set of tasks to use a generic project file might look like this...
+
+    {
+        "root_path":"/path/to/root/of/project/",
+        "public_path":"/path/to/web/root/",
+        "slug":"my-project",
+        "name":"My Project",
+        "group":"type2",
+        "group2":"type",
+        "tasks": {
+            "workon": [":group:action2",":group2:action1"],
+            "projectSpecificTask": ["shell","commands"]
+        }
+    }
+    
+A non generic example using the non-generic example above might look like this.
+
+    {
+        "root_path":"/path/to/root/of/project/",
+        "public_path":"/path/to/web/root/",
+        "slug":"my-project",
+        "name":"My Project",
+        "editor":"vim",
+        "scm":"git",
+        "type":"django",
+        "tasks": {
+            "workon": [":update",":open"],
+        }
+    }
+
+Then when you use ```cue workon my-project``` from anywhere in the system it goes to the root of the project, updates from your scm, and opens your editor based on your settings.
+
+Then to further demonstrate the polymorphic nature of the tool, you could then run ```cue start``` and that would use the start command relevant to your defined type in the project settings.
+
+#### Tasks
+
+A task can be one of 2 things, a simple string to either run in the shell or call another task (prefixed with `:`) or an object outlined below...
+
+    Task
+    {
+        "exec": "command",
+        "onError": {another_task},
+        "flow": "[continue]"
+    }
+
+The `exec` property is equivilent to the string preveously expected, but providing `onError` will give you the opportunitiy to "clean up" after a failed command and/or stop on the error.
+
+If you do not want the system to continue through a failed command (default), simply define `onError` as `"stop"`.
+
+
+#### Error Handling
+
+Example from above
+
+    ...
+    "scm": {
+        "git": {
+            "update": [{
+                "exec":"git pull",
+                "onError": { "exec": "shell command to clean up or notify", "flow":"stop" }
+            }]
+        },
+        "hg": {
+            "update": [{
+                "exec":"hg pull",
+                "onError: { "flow":"stop" } // simply continue past any errors
+            }]
+        },
+        "svn": {
+            "update": ["svn update"]  // continues if command does not complete successfully (default behaviour)
+        }
+    },
+    ...
