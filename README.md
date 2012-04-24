@@ -26,24 +26,29 @@ cue task -p project-name {task name}
 Example format of the `~/.cueconf` file at the most basic level
 
     {
-        "group": {
-            "type": {
-                "action1": ["shell", "commands", "to", "run"],
-                "action2": ["shell", "commands", "to", "run"]
-            },
-            "type2": {
-                "action1": ["shell", "commands", "to", "run"],
-                "action2": ["shell", "commands", "to", "run"]
+        "projects" {
+            "slug": "/path/to/project/.cuefile"
+        },
+        "tasks": {
+            "group": {
+                "type": {
+                    "action1": ["shell", "commands", "to", "run"],
+                    "action2": ["shell", "commands", "to", "run"]
+                },
+                "type2": {
+                    "action1": ["shell", "commands", "to", "run"],
+                    "action2": ["shell", "commands", "to", "run"]
+                }
             }
-        }
-        "group2": {
-            "type": {
-                "action1": ["shell", "commands", "to", "run"],
-                "action2": ["shell", "commands", "to", "run"]
-            },
-            "type2": {
-                "action1": ["shell", "commands", "to", "run"],
-                "action2": ["shell", "commands", "to", "run"]
+            "group2": {
+                "type": {
+                    "action1": ["shell", "commands", "to", "run"],
+                    "action2": ["shell", "commands", "to", "run"]
+                },
+                "type2": {
+                    "action1": ["shell", "commands", "to", "run"],
+                    "action2": ["shell", "commands", "to", "run"]
+                }
             }
         }
     }
