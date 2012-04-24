@@ -23,7 +23,7 @@ cue task -p project-name {task name}
 
 #### Global (~/.cueconf)
 
-Example format of the `~/.conductor` file at the most basic level
+Example format of the `~/.cueconf` file at the most basic level
 
     {
         "group": {
@@ -103,14 +103,14 @@ Per project we will define which set of tasks to use a generic project file migh
 A non generic example using the non-generic example above might look like this.
 
     {
-        "root_path":"/path/to/root/of/project/",
+        "root_path":"/path/to/root/of/project/", <-- required
+        "slug":"my-project",                     <-- required
+        "name":"My Project",                     <-- required
         "public_path":"/path/to/web/root/",
-        "slug":"my-project",
-        "name":"My Project",
         "editor":"vim",
         "scm":"git",
         "type":"django",
-        "tasks": {
+        "tasks": {                               <-- required
             "workon": [":update",":open"],
             
         }
@@ -127,12 +127,16 @@ A task can be one of 2 things
  - a simple string to either run in the shell or call another task (prefixed with `:`)
  - an object outlined below...
 
+You can refer to the current project properties in your shell strings with `##project.property##`
+
+
     Task
     {
         "exec": "command",
         "onError": {another_task},
         "flow": "[continue|stop]"
     }
+
 
 The `exec` property is equivilent to the string preveously expected, but providing `onError` will give you the opportunitiy to "clean up" after a failed command and/or stop on the error.
 
