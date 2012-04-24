@@ -7,50 +7,104 @@ Basically the goal is to create a development workflow automation engine to make
 
 ```json
 {
-	"editor": {
-		"vim": {
-			"open": ["vim ."]
-		}
-	},
-	"scm": {
-		"git": {
-			"update": ["git pull"]
-		},
-		"hg": {
-			"update": ["hg pull"]
-		},
-		"svn": {
-			"update": ["svn update"]
-		}
-	},
-	"type": {
-		"php": {
-			"start": ["rm ~/.phphome", "ln -s {this.public} ~/.phphome", "/Applications/MAMP/bin/apache2/bin/apachectl restart"],
-			"build": ["run through php -l"]
-		},
-		"rails": {
-			"start": ["rails server"]
-		}
-	}
+  "editor": {
+    "vim": {
+      "open": ["vim ."]
+    }
+  },
+  "scm": {
+    "git": {
+      "update": ["git pull"]
+    },
+    "hg": {
+      "update": ["hg pull"]
+    },
+    "svn": {
+      "update": ["svn update"]
+    }
+  },
+  "type": {
+    "php": {
+      "start": ["rm ~/.phphome", "ln -s {this.public} ~/.phphome", "/Applications/MAMP/bin/apache2/bin/apachectl restart"],
+      "build": ["run through php -l"]
+    },
+    "rails": {
+      "start": ["rails server"]
+    }
+  }
 }
 ```
 
+Possibly use YAML?
+
+```yaml
+editor:
+    vim:
+        open: vim .
+scm:
+    git:
+        update: git pull
+    hg:
+        update: hg pull
+    svn:
+        update: svn update
+type:
+    php:
+        start:|
+              rm ~/.phphome
+              ln -s {this.public} ~/.phphome
+              /Applications/MAMP/bin/apache2/bin/apachectl
+              
+        build: run through php -l
+    rails:
+        start: rails server
+```
+
+With error recovery?
+
+```yaml
+editor:
+    vim:
+        open: vim .
+scm:
+    git:
+        update: git pull
+    hg:
+        update: hg pull
+    svn:
+        update: svn update
+type:
+    php:
+        start:
+            - exec: rm ~/.phphome
+              onError: :stop
+
+            - exec: ln -s {this.public} ~/.phphome
+              onError: :stop
+
+            - exec: /Applications/MAMP/bin/apache2/bin/apachectl
+              onError: :continue
+
+        build: run through php -l
+    rails:
+        start: rails server
+```
 
 ###Example Project specific project file (.cue?)
 
 ```json
 {
-	"root_path": "/path/to/project_root",
-	"public_path": "/path/to/project_root/public_html",
-	"fullname": "Project Name",
-	"slug": "project-name",
-	"type": "php",
-	"scm": "git",
-	"editor": "vim",
-	"workon": [":scm:update", ":type:start", ":editor:open" ],
-	"tasks": [
-		{"specific": [ "more", "commands", "to", "run" ]}
-	]
+  "root_path": "/path/to/project_root",
+  "public_path": "/path/to/project_root/public_html",
+  "fullname": "Project Name",
+  "slug": "project-name",
+  "type": "php",
+  "scm": "git",
+  "editor": "vim",
+  "workon": [":scm:update", ":type:start", ":editor:open" ],
+  "tasks": [
+    {"specific": [ "more", "commands", "to", "run" ]}
+  ]
 }
 ```
 
