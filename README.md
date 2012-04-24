@@ -1,4 +1,4 @@
-##Cue - A Project/Task automation for local development
+##Cue - A Project/Task automator for local development
 
 Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable across multiple mixes of scm, platforms, and environments.
 
