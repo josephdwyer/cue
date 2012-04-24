@@ -122,7 +122,10 @@ Then to further demonstrate the polymorphic nature of the tool, you could then r
 
 #### Tasks
 
-A task can be one of 2 things, a simple string to either run in the shell or call another task (prefixed with `:`) or an object outlined below...
+A task can be one of 2 things
+
+ - a simple string to either run in the shell or call another task (prefixed with `:`)
+ - an object outlined below...
 
     Task
     {
