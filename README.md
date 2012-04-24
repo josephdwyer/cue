@@ -1,4 +1,4 @@
-##Conductor - Project/Task automation for local development
+##Cue - A Project/Task automation for local development
 
 Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable across multiple mixes of scm, platforms, and environments.
 
@@ -10,7 +10,7 @@ A few basic top level commands
 cue register {path/to/existing/.cue (optional, uses pwd)}  //register a project (take you through Q/A to setup project)
 cue unregister project-name  //unregister a project (make cue unaware of it)
 cue workon project-name      //fire up 'workon' task to switch to said project
-cue task {task name}         //fire off task (either global and/or overridden local task in a project)
+cue {task name}         //fire off task (either global and/or overridden local task in a project)
 ```
 
 You could also potentially run tasks on related (or dependant) projects without having to switch projects
@@ -21,7 +21,7 @@ cue task -p project-name {task name}
 
 ### Setup and Task Hierarchy
 
-#### Global (~/.conductor)
+#### Global (~/.cueconf)
 
 Example format of the `~/.conductor` file at the most basic level
 
@@ -83,7 +83,7 @@ A non generic example
     }
 
 
-#### Per Project Settings
+#### Per Project Settings ( /path/to/project/.cuefile )
 
 Per project we will define which set of tasks to use a generic project file might look like this...
 
@@ -112,6 +112,7 @@ A non generic example using the non-generic example above might look like this.
         "type":"django",
         "tasks": {
             "workon": [":update",":open"],
+            
         }
     }
 
@@ -127,7 +128,7 @@ A task can be one of 2 things, a simple string to either run in the shell or cal
     {
         "exec": "command",
         "onError": {another_task},
-        "flow": "[continue]"
+        "flow": "[continue|stop]"
     }
 
 The `exec` property is equivilent to the string preveously expected, but providing `onError` will give you the opportunitiy to "clean up" after a failed command and/or stop on the error.
