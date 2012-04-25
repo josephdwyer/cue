@@ -14,12 +14,84 @@ options.add_argument('task',
 
 args = None
 conf = None
+cuefile = None
 
 
 def save_conf():
     f = open(os.path.join(os.getenv("HOME"), ".cueconf"), "w")
     json.dump(conf, f, indent=4)
     f.close()
+
+
+def get_cueconf():
+    cueconf_path = os.path.join(os.getenv('HOME'), ".cueconf")
+    if not os.path.isfile(cueconf_path):
+        print "~/.cueconf doesn't exist"
+        exit()
+
+    try:
+        cueconf = json.load(open(cueconf_path))
+    except:
+        print "~/.cueconf is not valid json"
+        exit()
+
+    if "projects" not in cueconf:
+        print "~/.cueconf is missing projects section"
+        exit()
+
+    if "tasks" not in cueconf:
+        print "~/.cueconf is missing tasks section"
+        exit()
+
+    return cueconf
+
+
+def get_cuefile():
+    if args["project"]:
+        if args["project"] not in conf["projects"]:
+            print "Project %s not found" % args["project"]
+            exit()
+
+        try:
+            cf = json.load(open(args["projects"][args["project"]]))
+        except:
+            print "%s is not valid json" % args["projects"][args["project"]]
+            exit()
+
+    else:
+        for slug in conf["projects"]:
+            cuefile_path = conf["projects"][slug]
+            if cuefile_path[:-8] in os.getcwd():
+                if not os.path.isfile(cuefile_path):
+                    print "Project found but %s appears to not exist" % cuefile_path
+                    exit()
+
+                cf = json.load(open(cuefile_path))
+                break
+        if cf:
+            if "root_path" not in cf:
+                print "cuefile missing 'root_path'"
+                exit()
+
+            if "slug" not in cf:
+                print "cuefile missing 'slug'"
+                exit()
+
+            if "name" not in cf:
+                print "cuefile missing 'name'"
+                exit()
+
+            if "tasks" not in cf:
+                print "cuefile missing 'tasks'"
+                exit()
+            elif "workon" not in cf["tasks"]:
+                print "cuefile tasks mising 'workon' task"
+                exit()
+        else:
+            print "cuefile not found"
+            exit()
+
+        return cf
 
 
 def register():
@@ -35,24 +107,27 @@ def register():
     else:
         name = raw_input("Name of Project:")
         slug = raw_input("Project Slug:")
-        root = os.getcwd()
+        root = os.path.join(os.getcwd(), ".cuefile")
+
+        tasks = {"workon": []}
 
         conf["projects"][slug] = root
         save_conf()
 
-        cuefile_dict = {"name": name, "slug": slug, "root_path": root}
+        cuefile_dict = {"name": name, "slug": slug, "root_path": root, "tasks": tasks}
 
         f = open(os.path.join(os.getcwd(), ".cuefile"), "w+")
         json.dump(cuefile_dict, f, indent=4)
         f.close()
 
 
-def unregister(slug):
-    if conf["projects"][slug]:
-        del conf["projects"][slug]
+def unregister():
+    print "Unregister!"
+    if conf["projects"][cuefile["slug"]]:
+        del conf["projects"][cuefile["slug"]]
         save_conf()
     else:
-        print "Project %s is not registered" % slug
+        print "Project %s is not registered" % cuefile["slug"]
 
 
 def task(task_name):
@@ -62,33 +137,13 @@ def task(task_name):
 if __name__ == '__main__':
     args = vars(parser.parse_args())
 
-    cueconf_path = os.path.join(os.getenv('HOME'), ".cueconf")
-
-    if not os.path.isfile(cueconf_path):
-        print "~/.cueconf doesn't exist"
-        exit()
-
-    try:
-        conf = json.load(open(cueconf_path))
-    except:
-        print "~/.cueconf is not valid json"
-        exit()
-
-    if conf[u"projects"] is None:
-        print "~/.cueconf is missing projects section"
-        exit()
-
-    if conf["tasks"] is None:
-        print "~/.cueconf is missing tasks section"
-        exit()
+    conf = get_cueconf()
 
     if args["task"] == "register":
         register()
     elif args["task"] == "unregister":
-        if args["project"]:
-            slug = args["project"]
-        else:
-            slug = "???"
-        unregister(slug)
+        cuefile = get_cuefile()
+        unregister()
     else:
+        cuefile = get_cuefile()
         task(args["task"])
