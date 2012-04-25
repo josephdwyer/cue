@@ -123,21 +123,16 @@ def register():
 
 def unregister():
     print "Unregister!"
-    if cuefile["slug"] not in conf["projects"]:  
+    if cuefile["slug"] not in conf["projects"]:
         print "Project %s is not registered" % cuefile["slug"]
         exit()
-        
+
     del conf["projects"][cuefile["slug"]]
     save_conf()
 
 
 def run_task(task_name):
-    # TODO - actualy run tasks
-    # - Both 'cuefile' and 'conf' are available
-    # - check for task name defined in local project .cuefile
-    # - if not check globally, selecting appropriate group/type
-    # - once initial task is found, dig through recursively until complete and/or stopped
-    def run_exec(task):
+    def exec_task(task):
         if type(task) is dict:
             # run task["exec"]
             # error? exec(task["onError"])
@@ -149,6 +144,25 @@ def run_task(task_name):
             else:
                 # shell, ignoring errors
                 pass
+
+    task = None
+
+    if task_name in cuefile["tasks"]:
+        task = cuefile["tasks"][task_name]
+
+    if not task:
+        for group in conf["tasks"]:
+            if group in cuefile:
+                for _type in group:
+                    if task_name in _type:
+                        task = _type[task_name]
+
+    if not task:
+        print "task not found"
+        exit()
+
+    exec_task(task)
+
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())
