@@ -147,12 +147,19 @@ def run_task(task_name):
 
     task = None
 
+    #Local
     if task_name in cuefile["tasks"]:
         task = cuefile["tasks"][task_name]
 
+    #Global
+    if not task:
+        if task_name in conf["tasks"]["global"]:
+            task = conf["tasks"]["global"][task_name]
+
+    #By Group
     if not task:
         for group in conf["tasks"]:
-            if group in cuefile or group == "global":
+            if group in cuefile:
                 for _type in group:
                     if task_name in _type:
                         task = _type[task_name]
