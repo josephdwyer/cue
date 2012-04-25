@@ -135,7 +135,7 @@ def run_task(task_name):
     def exec_task(task):
         if type(task) is dict:
             # run task["exec"]
-            # error? exec(task["onError"])
+            # error? exec_task(task["onError"])
             # flow - stop|continue
             pass
         elif type(task) is str:
@@ -158,7 +158,7 @@ def run_task(task_name):
                         task = _type[task_name]
 
     if not task:
-        print "task not found"
+        print "(%s) task not found" % task_name
         exit()
 
     exec_task(task)
