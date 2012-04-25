@@ -152,10 +152,13 @@ def run_task(task_name):
 
     if not task:
         for group in conf["tasks"]:
-            if group in cuefile:
+            if group in cuefile or group == "global":
                 for _type in group:
                     if task_name in _type:
                         task = _type[task_name]
+                        break
+            if task:
+                break
 
     if not task:
         print "(%s) task not found" % task_name
