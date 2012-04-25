@@ -7,10 +7,10 @@ Basically the goal is to create a development workflow automation engine to make
 A few basic top level commands
 
 ```nocolor
-cue register {path/to/existing/.cue (optional, uses pwd)}  //register a project (take you through Q/A to setup project)
-cue unregister project-name  //unregister a project (make cue unaware of it)
-cue workon project-name      //fire up 'workon' task to switch to said project
-cue {task name}         //fire off task (either global and/or overridden local task in a project)
+cue register                 // register a project (take you through Q/A to setup project)
+cue unregister project-name  // unregister a project (make cue unaware of it)
+cue workon project-name      // run 'workon' task (switch to project root, and run desired tasks)
+cue {task name}              // fire off task (either global and/or overridden local task in a project)
 ```
 
 You could also potentially run tasks on related (or dependant) projects without having to switch projects
