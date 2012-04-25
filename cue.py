@@ -6,11 +6,11 @@ parser = argparse.ArgumentParser(description="CUE!")
 options = parser.add_argument_group('Options')
 
 options.add_argument('-p', '--project',
-                    help="Specify the project to run task with",
+                    help="Specify the target project for the task",
                     required=False)
 
 options.add_argument('task',
-                    help="specify the task")
+                    help="Specify the task")
 
 args = None
 conf = None
