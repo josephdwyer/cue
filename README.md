@@ -144,7 +144,7 @@ You can refer to the current project properties in your shell strings with `##pr
 
 The `exec` property is equivilent to the string preveously expected, but providing `onError` will give you the opportunitiy to "clean up" after a failed command and/or stop on the error.
 
-If you do not want the system to continue through a failed command (default), simply define `onError` as `"stop"`.
+If you do not want the system to continue through a failed command (default), simply define `onError` as `{"flow":"stop"}`.
 
 
 #### Error Handling
@@ -162,7 +162,7 @@ Example from above
         "hg": {
             "update": [{
                 "exec":"hg pull",
-                "onError: { "flow":"stop" } // simply continue past any errors
+                "onError: { "flow":"stop" } // stop executing if a command fails
             }]
         },
         "svn": {
