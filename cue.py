@@ -105,8 +105,8 @@ def register():
         conf["projects"][cuefile["slug"]] = os.path.join(cuefile["root_path"], ".cuefile")
         save_conf()
     else:
-        name = raw_input("Name of Project:")
-        slug = raw_input("Project Slug:")
+        name = raw_input("Name of Project: ")
+        slug = raw_input("Project Slug: ")
         root = os.path.join(os.getcwd(), ".cuefile")
 
         tasks = {"workon": []}
@@ -130,9 +130,22 @@ def unregister():
         print "Project %s is not registered" % cuefile["slug"]
 
 
-def task(task_name):
-    pass
+def run_task(task_name):
+    # TODO - actualy run tasks
+    # - check for task name defined in local project .cuefile
+    # - if not check globally, selecting appropriate group/type
+    # - once initial task is found, dig through recursively until complete and/or stopped
+    def exec(task):
+        if type(task) is dict:
+            # run task["exec"]
+            # error? exec(task["onError"])
+            # flow - stop|continue
 
+        elif type(task) is str:
+            if task[0] == ':':
+                run_task(task[1:])
+            else:
+                # shell, ignoring errors
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())
