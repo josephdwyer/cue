@@ -123,11 +123,12 @@ def register():
 
 def unregister():
     print "Unregister!"
-    if conf["projects"][cuefile["slug"]]:
-        del conf["projects"][cuefile["slug"]]
-        save_conf()
-    else:
+    if cuefile["slug"] not in conf["projects"]:  
         print "Project %s is not registered" % cuefile["slug"]
+        exit()
+        
+    del conf["projects"][cuefile["slug"]]
+    save_conf()
 
 
 def run_task(task_name):
