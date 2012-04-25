@@ -16,7 +16,7 @@ cue {task name}         //fire off task (either global and/or overridden local t
 You could also potentially run tasks on related (or dependant) projects without having to switch projects
 
 ```nocolor
-cue task -p project-name {task name}
+cue -p project-name {task name}
 ```
 
 ### Setup and Task Hierarchy
