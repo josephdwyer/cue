@@ -133,6 +133,7 @@ def unregister():
 
 def run_task(task_name):
     # TODO - actualy run tasks
+    # - Both 'cuefile' and 'conf' are available
     # - check for task name defined in local project .cuefile
     # - if not check globally, selecting appropriate group/type
     # - once initial task is found, dig through recursively until complete and/or stopped
