@@ -135,17 +135,18 @@ def run_task(task_name):
     # - check for task name defined in local project .cuefile
     # - if not check globally, selecting appropriate group/type
     # - once initial task is found, dig through recursively until complete and/or stopped
-    def exec(task):
+    def run_exec(task):
         if type(task) is dict:
             # run task["exec"]
             # error? exec(task["onError"])
             # flow - stop|continue
-
+            pass
         elif type(task) is str:
             if task[0] == ':':
                 run_task(task[1:])
             else:
                 # shell, ignoring errors
+                pass
 
 if __name__ == '__main__':
     args = vars(parser.parse_args())
@@ -159,4 +160,4 @@ if __name__ == '__main__':
         unregister()
     else:
         cuefile = get_cuefile()
-        task(args["task"])
+        run_task(args["task"])
