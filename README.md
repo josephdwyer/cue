@@ -36,18 +36,18 @@ Example format of the `~/.cueconf` file at the most basic level
                     "action2": ["shell", "commands", "to", "run"]
                 },
                 "type2": {
-                    "action1": ["shell", "commands", "to", "run"],
-                    "action2": ["shell", "commands", "to", "run"]
+                    "action3": ["shell", "commands", "to", "run"],
+                    "action4": ["shell", "commands", "to", "run"]
                 }
             }
             "group2": {
                 "type": {
-                    "action1": ["shell", "commands", "to", "run"],
-                    "action2": ["shell", "commands", "to", "run"]
+                    "action5": ["shell", "commands", "to", "run"],
+                    "action6": ["shell", "commands", "to", "run"]
                 },
                 "type2": {
-                    "action1": ["shell", "commands", "to", "run"],
-                    "action2": ["shell", "commands", "to", "run"]
+                    "action7": ["shell", "commands", "to", "run"],
+                    "action8": ["shell", "commands", "to", "run"]
                 }
             }
         }
@@ -100,7 +100,7 @@ Per project we will define which set of tasks to use a generic project file migh
         "group":"type2",
         "group2":"type",
         "tasks": {
-            "workon": [":group:action2",":group2:action1"],
+            "workon": [":action2",":action1"],
             "projectSpecificTask": ["shell","commands"]
         }
     }
