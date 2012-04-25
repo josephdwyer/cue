@@ -1,6 +1,7 @@
 import argparse
 import os
 import json
+from subprocess import call
 
 parser = argparse.ArgumentParser(description="CUE!")
 options = parser.add_argument_group('Options')
@@ -134,16 +135,12 @@ def unregister():
 def run_task(task_name):
     def exec_task(task):
         if type(task) is dict:
-            # run task["exec"]
-            # error? exec_task(task["onError"])
-            # flow - stop|continue
             pass
         elif type(task) is str:
             if task[0] == ':':
                 run_task(task[1:])
             else:
-                # shell, ignoring errors
-                pass
+                call(task)
 
     task = None
 
