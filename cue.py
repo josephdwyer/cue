@@ -135,6 +135,15 @@ def unregister():
 def run_task(task_name):
     def exec_task(task):
         if type(task) is dict:
+            if "exec" in task:
+                call(task["exec"])
+                if "onError" in task:
+                    exec_task(task["onError"])
+
+            if "flow" in task:
+                #respect it
+                pass
+
             pass
         elif type(task) is str:
             if task[0] == ':':
