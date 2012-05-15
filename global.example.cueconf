@@ -1,0 +1,32 @@
+{
+    "projects": {},
+    "tasks": {
+        "editor": {
+            "vim": {
+                "open": "vim"
+            },
+            "sublime": {
+                "open": "subl ."
+            }
+        },
+        "scm": {
+            "git": {
+                "update": ["git pull"]
+            },
+            "hg": {
+                "update": ["hg pull"]
+            },
+            "svn": {
+                "update": ["svn update"]
+            }
+        },
+        "type": {
+            "django": {
+                "start": ["python manage.py runserver"]
+            },
+            "rails": {
+                "start": ["rails server"]
+            }
+        }
+    }
+}
