@@ -7,12 +7,16 @@ from subprocess import call
 parser = argparse.ArgumentParser(description="CUE!")
 options = parser.add_argument_group('Options')
 
+
 options.add_argument('-p', '--project',
                     help="Specify the target project for the task",
                     required=False)
 
 options.add_argument('task',
                     help="Specify the task")
+
+options.add_argument('assumed_project', nargs='?',
+                    help="Specify the project")
 
 global_config_dir_path = os.path.join(os.getenv('HOME'), ".cue")
 extension = '.cueconf'
@@ -216,6 +220,9 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
 
     global_conf = get_global_conf()
+
+    if not args['project'] and args['assumed_project']:
+        args['project'] = args['assumed_project']
 
     if args["task"] == "register":
         project_conf = register(global_conf)
