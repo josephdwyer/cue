@@ -12,6 +12,10 @@ options.add_argument('-p', '--project',
                     help="Specify the target project for the task",
                     required=False)
 
+options.add_argument('-s', '--section',
+                    help="Specify the section for the task",
+                    required=False)
+
 options.add_argument('task',
                     help="Specify the task")
 
@@ -49,8 +53,8 @@ def get_global_conf():
         print "cueconf is missing projects section"
         exit()
 
-    if "tasks" not in cues:
-        print "cueconf is missing tasks section"
+    if 'defaultSection' not in cues:
+        print "cueconf is missing defaultSection definition"
         exit()
 
     return cues
@@ -94,11 +98,11 @@ def get_project_conf(global_conf, project_name=None):
             print "project_conf missing 'name'"
             exit()
 
-        if "tasks" not in cf:
-            print "project_conf missing 'tasks'"
+        if 'defaultSection' in cf and cf['defaultSection'] not in cf:
+            print "project_conf missing '%s'" % cf['defaultSection']
             exit()
-        elif "workon" not in cf["tasks"]:
-            print "project_conf tasks mising 'workon' task"
+        elif 'defaultSection' not in cf and  global_conf['defaultSection'] not in cf:
+            print "project_conf missing '%s'" % global_config['defaultSection']
             exit()
     else:
         print "project_conf not found"
@@ -121,9 +125,7 @@ def recursive_update(d, u):
     return d
 
 
-def register(global_conf):
-    print "Register!"
-
+def register(global_conf, section):
     proj_cue_path = os.path.join(os.getcwd(), extension)
 
     if os.path.isfile(proj_cue_path):
@@ -135,12 +137,12 @@ def register(global_conf):
     else:
         name = raw_input("Name of Project: ")
         slug = raw_input("Project Slug: ")
-        tasks = {"workon": []}
+        default_section = {}
 
         project_conf_dict = {"name": name,
                         "slug": slug,
                         "root_path": proj_cue_path,
-                        "tasks": tasks}
+                        section: default_section}
 
         f = open(proj_cue_path, "w+")
         json.dump(project_conf_dict, f, indent=4)
@@ -160,16 +162,16 @@ def register(global_conf):
 
 
 def unregister(global_conf, project_conf):
-    print "Unregister!"
     if project_conf["slug"] not in global_conf["projects"]:
-        print "Project %s is not registered" % proj_conf["slug"]
+        print "Project %s is not registered" % project_conf["slug"]
         exit()
 
-    del global_conf["projects"][proj_conf["slug"]]
-    os.remove(os.join(global_config_dir_path, name))
+    del global_conf["projects"][project_conf["slug"]]
+    os.remove(os.path.join(global_config_dir_path, \
+            project_conf['slug'] + extension))
 
 
-def run_task(task_name, global_conf, project_conf):
+def run_task(section, task_name, global_conf, project_conf):
     def exec_task(task):
         print type(task)
         if isinstance(task, collections.Mapping):
@@ -192,20 +194,21 @@ def run_task(task_name, global_conf, project_conf):
     task = None
 
     #Local
-    if task_name in project_conf["tasks"]:
-        task = project_conf["tasks"][task_name]
+    if task_name in project_conf[section]:
+        task = project_conf[section][task_name]
 
     #Global
     if not task:
-        if 'global' in global_conf['tasks'] and task_name in global_conf["tasks"]["global"]:
-            task = global_conf["tasks"]["global"][task_name]
+        if 'global' in global_conf[section] and \
+                task_name in global_conf[section]["global"]:
+            task = global_conf[section]["global"][task_name]
 
     #By Group
     if not task:
-        for group in global_conf["tasks"]:
+        for group in global_conf[section]:
             if group in project_conf:
                 task = \
-                global_conf['tasks'][group][project_conf[group]][task_name]
+                global_conf[section][group][project_conf[group]][task_name]
             if task:
                 break
 
@@ -224,11 +227,19 @@ if __name__ == '__main__':
     if not args['project'] and args['assumed_project']:
         args['project'] = args['assumed_project']
 
+    is_section_default = False
+    if not args['section']:
+        args['section'] = global_conf['defaultSection']
+        is_section_default = True
+
     if args["task"] == "register":
-        project_conf = register(global_conf)
-    elif args["task"] == "unregister":
-        project_conf = get_project_conf(global_conf, args['project'])
-        unregister(global_conf, project_conf)
+        project_conf = register(global_conf, args['section'])
     else:
         project_conf = get_project_conf(global_conf, args['project'])
-        run_task(args["task"], global_conf, project_conf)
+        if is_section_default and 'defaultSection' in project_conf:
+            args['section'] = project_conf['defaultSection']
+
+        if args["task"] == "unregister":
+            unregister(global_conf, project_conf)
+        else:
+            run_task(args['section'], args["task"], global_conf, project_conf)
