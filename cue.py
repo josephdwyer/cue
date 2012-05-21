@@ -4,37 +4,51 @@ import json
 import collections
 from subprocess import call
 
-parser = argparse.ArgumentParser(description="CUE!")
+parser = argparse.ArgumentParser(description='CUE!')
 options = parser.add_argument_group('Options')
 
 
 options.add_argument('-p', '--project',
-                    help="Specify the target project for the task",
+                    help='Specify the target project for the task',
                     required=False)
 
 options.add_argument('-s', '--section',
-                    help="Specify the section for the task",
+                    help='Specify the section for the task',
                     required=False)
 
 options.add_argument('task',
-                    help="Specify the task")
+                    help='Specify the task')
 
 options.add_argument('assumed_project', nargs='?',
-                    help="Specify the project")
+                    help='Specify the project')
 
-global_config_dir_path = os.path.join(os.getenv('HOME'), ".cue")
+global_config_dir_path = os.path.join(os.getenv('HOME'), '.cue')
 extension = '.cueconf'
 
 args = None
 
 
 def get_global_conf():
+    cues = get_settings_from_directory(global_config_dir_path)
 
-    if not os.path.exists(global_config_dir_path):
-        os.makedirs(global_config_dir_path)
+    if 'projects' not in cues:
+        print 'cueconf is missing projects section'
+        exit()
 
-    cueconf_file_paths = [os.path.join(global_config_dir_path, file) for file in os.listdir(global_config_dir_path) \
-                            if file.lower().endswith(extension)]
+    if 'defaultSection' not in cues:
+        print 'cueconf is missing defaultSection definition'
+        exit()
+
+    return cues
+
+def get_settings_from_directory(directory_path):
+    if not os.path.exists(directory_path):
+        print 'directory does not exist (%s)' % directory_path
+        exit()
+
+    cueconf_file_paths = \
+        [os.path.join(directory_path, file)
+        for file in os.listdir(directory_path) if file.lower().endswith(extension)]
 
     cues = {}
     for cueconf_path in cueconf_file_paths:
@@ -45,70 +59,55 @@ def get_global_conf():
         try:
             cueconf_contents = json.load(open(cueconf_path))
         except:
-            print "cueconf is not valid json"
+            print '%s is not valid json' % cueconf_path
             exit()
         cues = recursive_update(cues, cueconf_contents)
 
-    if "projects" not in cues:
-        print "cueconf is missing projects section"
-        exit()
-
-    if 'defaultSection' not in cues:
-        print "cueconf is missing defaultSection definition"
-        exit()
-
     return cues
 
-
 def get_project_conf(global_conf, project_name=None):
-    cf = None
+    cues = None
     if project_name:
-        if project_name not in global_conf["projects"]:
-            print "Project %s not found" % project_name
+        if project_name not in global_conf['projects']:
+            print 'Project %s not found' % project_name
             exit()
 
-        try:
-            cf = json.load(open(global_conf["projects"][project_name]))
-        except:
-            print "%s is not valid json" % \
-                    global_conf["projects"][project_name]
-            exit()
+        cues = get_settings_from_directory(global_conf['projects'][project_name])
 
     else:
         for slug in global_conf['projects']:
-            project_conf_path = global_conf["projects"][slug]
+            project_conf_path = global_conf['projects'][slug]
             if os.path.dirname(project_conf_path) in os.getcwd():
-                if not os.path.isfile(project_conf_path):
-                    print "Project found but %s appears to not exist" % \
-                            project_conf_path
-                    exit()
+                cues = get_settings_from_directory(project_conf_path)
 
-                cf = json.load(open(project_conf_path))
+                if not cues:
+                    print 'Project found but no cueconf files appear to not exist'
+                    exit()
                 break
-    if cf:
-        if "root_path" not in cf:
+    if cues:
+        if 'root_path' not in cues:
             print "project_conf missing 'root_path'"
             exit()
 
-        if "slug" not in cf:
+        if 'slug' not in cues:
             print "project_conf missing 'slug'"
             exit()
 
-        if "name" not in cf:
+        if 'name' not in cues:
             print "project_conf missing 'name'"
             exit()
 
-        if 'defaultSection' in cf and cf['defaultSection'] not in cf:
-            print "project_conf missing '%s'" % cf['defaultSection']
+        if 'defaultSection' in cues and cues['defaultSection'] not in cues:
+            print "project_conf missing '%s'" % cues['defaultSection']
             exit()
-        elif 'defaultSection' not in cf and  global_conf['defaultSection'] not in cf:
+        elif 'defaultSection' not in cues and global_conf['defaultSection'] not in cues:
             print "project_conf missing '%s'" % global_config['defaultSection']
             exit()
     else:
-        print "project_conf not found"
+        print 'project_conf not found'
         exit()
 
-    return cf
+    return cues
 
 
 def recursive_update(d, u):
@@ -126,47 +125,46 @@ def recursive_update(d, u):
 
 
 def register(global_conf, section):
-    proj_cue_path = os.path.join(os.getcwd(), extension)
+    project_conf_dict = get_settings_from_directory(os.getcwd())
 
-    if os.path.isfile(proj_cue_path):
-        project_conf_dict = json.load(open(proj_cue_path))
-
+    if project_conf_dict:
         name = project_conf_dict['name']
         slug = project_conf_dict['slug']
 
     else:
-        name = raw_input("Name of Project: ")
-        slug = raw_input("Project Slug: ")
+        name = raw_input('Name of Project: ')
+        slug = raw_input('Project Slug: ')
         default_section = {}
 
-        project_conf_dict = {"name": name,
-                        "slug": slug,
-                        "root_path": proj_cue_path,
-                        section: default_section}
+        project_conf_dict = {'name': name,
+                            'slug': slug,
+                            'root_path': os.getcwd(),
+                            section: default_section}
 
-        f = open(proj_cue_path, "w+")
+        proj_cue_path = os.path.join(os.getcwd(), extension)
+        f = open(proj_cue_path, 'w+')
         json.dump(project_conf_dict, f, indent=4)
         f.close()
 
-    if slug in global_conf["projects"]:
-        print "project slug already exists on the system"
+    if slug in global_conf['projects']:
+        print 'project slug already exists on the system'
         exit()
 
-    global_conf["projects"][slug] = proj_cue_path
+    global_conf['projects'][slug] = os.getcwd()
 
-    f = open(os.path.join(global_config_dir_path, slug + extension), "w+")
-    json.dump({'projects': {slug: proj_cue_path}}, f, indent=4)
+    f = open(os.path.join(global_config_dir_path, slug + extension), 'w+')
+    json.dump({'projects': {slug: os.getcwd()}}, f, indent=4)
     f.close()
 
     return project_conf_dict
 
 
 def unregister(global_conf, project_conf):
-    if project_conf["slug"] not in global_conf["projects"]:
-        print "Project %s is not registered" % project_conf["slug"]
+    if project_conf['slug'] not in global_conf['projects']:
+        print 'Project %s is not registered' % project_conf['slug']
         exit()
 
-    del global_conf["projects"][project_conf["slug"]]
+    del global_conf['projects'][project_conf['slug']]
     os.remove(os.path.join(global_config_dir_path, \
             project_conf['slug'] + extension))
 
@@ -175,12 +173,12 @@ def run_task(section, task_name, global_conf, project_conf):
     def exec_task(task):
         print type(task)
         if isinstance(task, collections.Mapping):
-            if "exec" in task:
-                call(task["exec"])
-                if "onError" in task:
-                    exec_task(task["onError"])
+            if 'exec' in task:
+                call(task['exec'])
+                if 'onError' in task:
+                    exec_task(task['onError'])
 
-            if "flow" in task:
+            if 'flow' in task:
                 #respect it
                 pass
 
@@ -200,8 +198,8 @@ def run_task(section, task_name, global_conf, project_conf):
     #Global
     if not task:
         if 'global' in global_conf[section] and \
-                task_name in global_conf[section]["global"]:
-            task = global_conf[section]["global"][task_name]
+                task_name in global_conf[section]['global']:
+            task = global_conf[section]['global'][task_name]
 
     #By Group
     if not task:
@@ -209,11 +207,15 @@ def run_task(section, task_name, global_conf, project_conf):
             if group in project_conf:
                 task = \
                 global_conf[section][group][project_conf[group]][task_name]
+            else:
+                print 'Project missing setting. ' + \
+                        'Please define an entry for %s[%s] = (%s)' % \
+                    (section, group, str(global_conf[section][group].keys()))
             if task:
                 break
 
     if not task:
-        print "(%s) task not found" % task_name
+        print '(%s) task not found' % task_name
         exit()
 
     exec_task(task)
@@ -232,14 +234,14 @@ if __name__ == '__main__':
         args['section'] = global_conf['defaultSection']
         is_section_default = True
 
-    if args["task"] == "register":
+    if args['task'] == 'register':
         project_conf = register(global_conf, args['section'])
     else:
         project_conf = get_project_conf(global_conf, args['project'])
         if is_section_default and 'defaultSection' in project_conf:
             args['section'] = project_conf['defaultSection']
 
-        if args["task"] == "unregister":
+        if args['task'] == 'unregister':
             unregister(global_conf, project_conf)
         else:
-            run_task(args['section'], args["task"], global_conf, project_conf)
+            run_task(args['section'], args['task'], global_conf, project_conf)

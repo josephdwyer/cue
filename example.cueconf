@@ -1,9 +1,0 @@
-{
-    "tasks": {
-        "workon": []
-    }, 
-    "root_path": "/home/joe/Documents/programs/python/cue/.cueconf", 
-    "name": "cue",
-    "slug": "cue",
-    "editor": "vim"
-}
