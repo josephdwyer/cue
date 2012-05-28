@@ -1,53 +1,49 @@
-##Cue - A Project/Task automator for local development
+#Cue - A Project/Task automator for local development
 
-Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable across multiple mixes of scm, platforms, and environments.
 
-### Usage
+Basically the goal is to create a development workflow automation engine to make core workflow steps consistent and reusable across multiple mixes of scm, platforms, environments, or anything else.
+
+## Usage
 
 A few basic top level commands
 
-```nocolor
-cue register                 // register a project (take you through Q/A to setup project)
-cue unregister project-name  // unregister a project (make cue unaware of it)
-cue workon project-name      // run 'workon' task (switch to project root, and run desired tasks)
-cue {task name}              // fire off task (either global and/or overridden local task in a project)
-```
+###```cue register```
+Registering a project makes cue aware of its existence. First, register will search of any .cueconf files in the user's current directory. If no .cueconf files are found, a short list of questions will be asked to setup the project.
 
-You could also potentially run tasks on related (or dependant) projects without having to switch projects
+###```cue deregister```
+Deregistering a project makes cue unaware of the projects existence, meaning cue commands can no longer be run on that project. deregister leaves any .cueconf files in the project directory.
 
-```nocolor
-cue -p project-name {task name}
-```
+###```cue (-s section_name|-p project_name) [taskName (project_name)]```
+Search for a task named taskName defined in the global or project configuration files. If the project_name is specified through the -p flag or the second command line parameter, perform the task on that project, if it is not specified, check to see if the user is currently in a sub-directory of a registered project. If -s is specified look for the task in the section specified, otherwise use the section defined in defaultSection.
 
-### Setup and Task Hierarchy
+## Setup and Task Hierarchy
+Global .cueconf files are located in ```~/.cue/```, there can be several files which will be combined into the same JSON object. By allowing multiple files, related tasks can be logically grouped and shared. E.G. git.cueconf, hg.cueconf, sv.cueconf.
 
-#### Global (~/.cueconf)
+#### Global (~/.cue/[any-file-name].cueconf)
 
-Example format of the `~/.cueconf` file at the most basic level
+Example format of the `~/.cue/.cueconf` file at the most basic level
 
     {
-        "projects" {
-            "slug": "/path/to/project/.cuefile"
-        },
-        "tasks": {
+        "defaultSection": "section_name",
+        "section_name": {
             "group": {
                 "type": {
-                    "action1": ["shell", "commands", "to", "run"],
-                    "action2": ["shell", "commands", "to", "run"]
+                    "action1": [task_objs, to, run],
+                    "action2": [task_objs, to, run]
                 },
                 "type2": {
-                    "action3": ["shell", "commands", "to", "run"],
-                    "action4": ["shell", "commands", "to", "run"]
+                    "action3": [task_objs, to, run],
+                    "action4": [task_objs, to, run]
                 }
             }
             "group2": {
                 "type": {
-                    "action5": ["shell", "commands", "to", "run"],
-                    "action6": ["shell", "commands", "to", "run"]
+                    "action5": [task_objs, to, run],
+                    "action6": [task_objs, to, run]
                 },
                 "type2": {
-                    "action7": ["shell", "commands", "to", "run"],
-                    "action8": ["shell", "commands", "to", "run"]
+                    "action7": [task_objs, to, run],
+                    "action8": [task_objs, to, run]
                 }
             }
         }
@@ -58,32 +54,37 @@ These settings define and namespace tasks that can be run within projects and ar
 A non generic example
 
     {
-        "editor": {
-            "vim": {
-                "open": "vim ."
+        "defaultSection": "tasks",
+        "tasks": {
+            "editor": {
+                "vim": {
+                    "open": ["vim"]
+                },
+                "sublime": {
+                    "open": [{"exec": "subl"}],
+                },
+                "gedit": {
+                    "open": {"exec": "gedit", "onError": {"exec": "echo 'ught oh'", "flow": "next"}}               
             },
-            "sublime": {
-                "open": "subl ."
-            }
-        },
-        "scm": {
-            "git": {
-                "update": ["git pull"]
+            "scm": {
+                "git": {
+                    "update": ["git pull"],
+                    "commit": ["git commit -a"]
+                },
+                "hg": {
+                    "update": ["hg pull", "hg merge"],
+                    "commit": ["shell", "hg commit"]
+                }
             },
-            "hg": {
-                "update": ["hg pull"]
-            }
-            "svn": {
-                "update": ["svn update"]
-            }
-        },
-        "type": {
-            "django": {
-                "start": ["python manage.py runserver"]
+           "type": {
+                "django": {
+                 "start": ["python manage.py runserver"]
             }
             "rails": {
                 "start": ["rails server"]
             }
+        }
+
         }
     }
 
@@ -114,13 +115,10 @@ A non generic example using the non-generic example above might look like this.
         "public_path":"/path/to/web/root/",
         "editor":"vim",
         "scm":"git",
-        "type":"django",
-        "tasks": {                               <-- required
-            "workon": [":update",":open"]        <-- required
-        }
+        "type":"django"
     }
 
-Then when you use ```cue workon my-project``` from anywhere in the system it goes to the root of the project, updates from your scm, and opens your editor based on your settings.
+You could define a workon task which updates the project, and opens the editor. Then when you use ```cue workon my-project``` from anywhere in the system it goes to the root of the project, updates from your scm, and opens your editor based on your settings.
 
 Then to further demonstrate the polymorphic nature of the tool, you could then run ```cue start``` and that would use the start command relevant to your defined type in the project settings.
 
@@ -138,13 +136,13 @@ You can refer to the current project properties in your shell strings with `##pr
     {
         "exec": "command",
         "onError": {another_task},
-        "flow": "[continue|stop]"
+        "flow": "[next|previous|stop|#(index of task)]"
     }
 
 
-The `exec` property is equivilent to the string preveously expected, but providing `onError` will give you the opportunitiy to "clean up" after a failed command and/or stop on the error.
+The `exec` property is equivalent to the string preveously expected, but providing `onError` will give you the opportunitiy to "clean up" after a failed command and/or continue executing commands on the error.
 
-If you do not want the system to continue through a failed command (default), simply define `onError` as `{"flow":"stop"}`.
+By default, when there is an error the default value for flow is 'stop'. Meaning halt execution of the rest of the commands. If you do want the system to continue through a failed command, simply define `onError` as `{"flow":"next"}`.
 
 
 #### Error Handling
@@ -159,14 +157,11 @@ Example from above
                 "onError": { "exec": "shell command to clean up or notify", "flow":"stop" }
             }]
         },
-        "hg": {
-            "update": [{
-                "exec":"hg pull",
-                "onError: { "flow":"stop" } // stop executing if a command fails
-            }]
-        },
-        "svn": {
-            "update": ["svn update"]  // continues if command does not complete successfully (default behaviour)
-        }
     },
     ...
+
+##ToDo
+1. allow reference of properties with ##property_name## in tasks  
+1. allow reference of additional command line arguments via $1,$2 syntax, including taking into account project_name may or may not be the second parameter.
+1. allow some conditional logic in the exec/flow statements. ```"exec": "$1 == 80 ? sudo python controller.py 80", "flow": "##type## == 'web.py' ? :stop : :next"```
+
