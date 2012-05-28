@@ -159,7 +159,7 @@ def register(global_conf, section):
     return project_conf_dict
 
 
-def unregister(global_conf, project_conf):
+def deregister(global_conf, project_conf):
     if project_conf['slug'] not in global_conf['projects']:
         print 'Project %s is not registered' % project_conf['slug']
         exit()
@@ -237,7 +237,6 @@ def run_task(section, task_name, global_conf, project_conf):
     next_index = 1
     stop_index = len(tasks)
     while True:
-        print str(tasks[current_index])
         flow = exec_task(tasks[current_index])
         if flow == 'next':
             previous_index = current_index
@@ -282,7 +281,7 @@ if __name__ == '__main__':
         if is_section_default and 'defaultSection' in project_conf:
             args['section'] = project_conf['defaultSection']
 
-        if args['task'] == 'unregister':
-            unregister(global_conf, project_conf)
+        if args['task'] == 'deregister':
+            deregister(global_conf, project_conf)
         else:
             run_task(args['section'], args['task'], global_conf, project_conf)
