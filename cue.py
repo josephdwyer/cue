@@ -19,7 +19,7 @@ options.add_argument('-s', '--section',
 options.add_argument('task',
                     help='Specify the task')
 
-options.add_argument('assumed_project', nargs='?',
+options.add_argument('project_or_argument', nargs='?',
                     help='Specify the project')
 
 global_config_dir_path = os.path.join(os.getenv('HOME'), '.cue')
@@ -170,55 +170,94 @@ def unregister(global_conf, project_conf):
 
 
 def run_task(section, task_name, global_conf, project_conf):
-    def exec_task(task):
-        print type(task)
+    def exec_task(task, default_flow='next'):
+        exec_string = None
         if isinstance(task, collections.Mapping):
             if 'exec' in task:
-                call(task['exec'])
-                if 'onError' in task:
-                    exec_task(task['onError'])
-
-            if 'flow' in task:
-                #respect it
-                pass
-
+                exec_string = task['exec']
         elif isinstance(task, basestring):
-            if task[0] == ':':
-                run_task(task[1:])
+            if task.startswith(':'):
+                return run_task(task[1:])
             else:
-                print 'call ' + task
-                call(task)
+                exec_string = task
 
-    task = None
+        exit_code = 0
+        if exec_string:
+            exit_code = call(exec_string, shell=True)
+
+        flow = default_flow
+        if exit_code != 0:
+            # error - default flow is stop
+            flow = 'stop'
+            if isinstance(task, collections.Mapping) and'onError' in task:
+                flow = exec_task(task['onError'], default_flow='stop')
+        else:
+            # success
+            if 'flow' in task:
+                flow = task['flow']
+
+        return flow
+
+    tasks = None
 
     #Local
     if task_name in project_conf[section]:
-        task = project_conf[section][task_name]
+        tasks = project_conf[section][task_name]
 
     #Global
-    if not task:
+    if not tasks:
         if 'global' in global_conf[section] and \
                 task_name in global_conf[section]['global']:
-            task = global_conf[section]['global'][task_name]
+            tasks = global_conf[section]['global'][task_name]
 
     #By Group
-    if not task:
+    if not tasks:
         for group in global_conf[section]:
             if group in project_conf:
-                task = \
+                tasks = \
                 global_conf[section][group][project_conf[group]][task_name]
             else:
                 print 'Project missing setting. ' + \
                         'Please define an entry for %s[%s] = (%s)' % \
                     (section, group, str(global_conf[section][group].keys()))
-            if task:
+            if tasks:
                 break
 
-    if not task:
-        print '(%s) task not found' % task_name
+    if not tasks:
+        print '(%s) tasks not found' % task_name
         exit()
 
-    exec_task(task)
+    if not isinstance(tasks, collections.Iterable) or \
+        isinstance(tasks, basestring):
+        tasks = [tasks]
+
+
+    previous_index = 0
+    current_index = 0
+    next_index = 1
+    stop_index = len(tasks)
+    while True:
+        print str(tasks[current_index])
+        flow = exec_task(tasks[current_index])
+        if flow == 'next':
+            previous_index = current_index
+            current_index = next_index
+            next_index = min(stop_index, current_index + 1)
+        elif flow == 'previous':
+            current_index = previous_index
+            previous_index = max(0, current_index - 1)
+            next_index = min(stop_index, current_index + 1)
+        elif flow == 'stop':
+            current_index = stop_index
+            next_index = stop_index
+            previous_index = max(0, current_index - 1)
+        elif flow.startswith('#'):
+            current_index = int(flow[1:])
+            previous_index = max(0, current_index - 1)
+            next_index = min(stop_index, current_index + 1)
+
+        if current_index >= stop_index:
+            break
 
 
 if __name__ == '__main__':
@@ -226,8 +265,10 @@ if __name__ == '__main__':
 
     global_conf = get_global_conf()
 
-    if not args['project'] and args['assumed_project']:
-        args['project'] = args['assumed_project']
+    if not args['project'] and args['project_or_argument']:
+        # todo - check to see if this is the name of a project otherwise assume
+        # it is a parameter being passed to the commands
+        args['project'] = args['project_or_argument']
 
     is_section_default = False
     if not args['section']:
